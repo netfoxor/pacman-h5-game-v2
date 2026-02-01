@@ -9,7 +9,7 @@ import { GameConfig } from '../types/index.js';
 export const DEFAULT_CONFIG: GameConfig = {
   tileSize: 20,           // 每个格子的大小（像素）
   fps: 60,                // 目标帧率
-  pacmanSpeed: 2,         // 吃豆人速度（像素/帧）
+  pacmanSpeed: 1.5,      // 吃豆人速度（像素/帧）- 减慢速度
   ghostSpeed: 1.8,        // 幽灵速度（像素/帧）
   frightenedDuration: 6000,  // 能量豆效果持续时间（毫秒）
   scatterDuration: 7000,     // 散开模式持续时间

@@ -68,6 +68,15 @@ export class InputHandler {
    */
   private handleKeyUp(event: KeyboardEvent): void {
     this.keys.delete(event.key);
+    
+    // 检查是否所有方向键都松开了
+    const directionKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'];
+    const hasDirectionKeyPressed = directionKeys.some(key => this.keys.has(key));
+    
+    // 如果没有方向键被按下，停止移动
+    if (!hasDirectionKeyPressed) {
+      this.nextDirection = Direction.NONE;
+    }
   }
 
   /**

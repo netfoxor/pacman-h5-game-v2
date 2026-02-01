@@ -35,11 +35,35 @@
       border-radius: 8px;
       padding: 10px;
       background-color: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     canvas {
       display: block;
       background-color: #000;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .score-display {
+      color: #FFFF00;
+    }
+
+    .lives-display {
+      color: #00FF00;
+    }
+
+    .level-display {
+      color: #FF00FF;
     }
 
     .controls {
@@ -97,9 +121,10 @@
       <span class="key">A</span>
       <span class="key">S</span>
       <span class="key">D</span>
-      to move
+      Hold to move, Release to stop
     </p>
     <p><span class="key">P</span> to pause</p>
+    <p>🟡 Eat dots • ⚡ Power pellets let you eat ghosts!</p>
   </div>
 
   <script type="module" src="/src/index.ts"></script>

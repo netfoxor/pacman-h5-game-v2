@@ -10,13 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // 创建游戏实例
   const game = new Game('gameCanvas');
   
+  // 获取UI元素（可选，用于外部UI更新）
+  const scoreElement = document.getElementById('scoreValue');
+  const livesElement = document.getElementById('livesValue');
+  const levelElement = document.getElementById('levelValue');
+  
   // 设置事件回调
   game.onScoreChange = (score: number) => {
-    console.log(`Score: ${score}`);
+    if (scoreElement) scoreElement.textContent = score.toString();
   };
   
   game.onLivesChange = (lives: number) => {
-    console.log(`Lives: ${lives}`);
+    if (livesElement) livesElement.textContent = lives.toString();
   };
   
   game.onGameOver = () => {
@@ -25,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   game.onLevelComplete = () => {
     console.log('Level Complete!');
+    if (levelElement) levelElement.textContent = game.getLevel().toString();
   };
 
   // 开始游戏

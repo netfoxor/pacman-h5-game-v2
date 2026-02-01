@@ -78,6 +78,56 @@ export class Game {
       powerModeActive: false,
       powerModeTimer: 0
     };
+
+    // 添加点击事件监听（用于重玩按钮）
+    this.setupClickListener();
+  }
+
+  /**
+   * 设置点击事件监听
+   */
+  private setupClickListener(): void {
+    this.canvas.addEventListener('click', (e) => {
+      if (!this.gameState.isGameOver) return;
+      
+      const rect = this.canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      
+      // 检查是否点击了重玩按钮
+      if (this.restartButtonRect &&
+          clickX >= this.restartButtonRect.x &&
+          clickX <= this.restartButtonRect.x + this.restartButtonRect.width &&
+          clickY >= this.restartButtonRect.y &&
+          clickY <= this.restartButtonRect.y + this.restartButtonRect.height) {
+        this.restart();
+      }
+    });
+  }
+
+  /**
+   * 重新开始游戏
+   */
+  restart(): void {
+    // 重置游戏状态
+    this.gameState.score = 0;
+    this.gameState.lives = 3;
+    this.gameState.level = 1;
+    this.gameState.isGameOver = false;
+    this.gameState.isPaused = false;
+    this.gameState.powerModeActive = false;
+    this.gameState.powerModeTimer = 0;
+    
+    // 重置地图
+    this.map.reset();
+    this.gameState.dotsRemaining = this.map.getRemainingDots();
+    
+    // 重置位置和输入
+    this.resetPositions();
+    
+    // 触发回调
+    this.onScoreChange?.(0);
+    this.onLivesChange?.(3);
   }
 
   /**
@@ -181,13 +231,23 @@ export class Game {
     // 尝试改变方向
     const nextDir = this.input.getNextDirection();
     
-    if (nextDir !== Direction.NONE && nextDir !== this.pacman.direction) {
+    // 如果方向是 NONE，停止移动
+    if (nextDir === Direction.NONE) {
+      this.pacman.direction = Direction.NONE;
+      this.input.setCurrentDirection(Direction.NONE);
+      this.pacman.update(16, this.map);
+      return;
+    }
+    
+    if (nextDir !== this.pacman.direction) {
       // 尝试新方向
       if (this.pacman.move(nextDir, this.map, DEFAULT_CONFIG.tileSize)) {
         this.input.confirmDirectionChange();
       } else {
-        // 新方向被阻挡，继续当前方向
-        this.pacman.move(this.pacman.direction, this.map, DEFAULT_CONFIG.tileSize);
+        // 新方向被阻挡，尝试继续当前方向（如果当前方向不是 NONE）
+        if (this.pacman.direction !== Direction.NONE) {
+          this.pacman.move(this.pacman.direction, this.map, DEFAULT_CONFIG.tileSize);
+        }
       }
     } else {
       // 继续当前方向
@@ -474,38 +534,85 @@ export class Game {
    * 绘制UI
    */
   private renderUI(): void {
+    // UI 显示在画布底部，不挡住游戏区域
+    const uiY = this.canvas.height + 30;
+    
     this.ctx.fillStyle = '#FFFFFF';
     this.ctx.font = '16px Arial';
     this.ctx.textAlign = 'left';
     
-    // 分数
-    this.ctx.fillText(`SCORE: ${this.gameState.score}`, 10, 20);
+    // 分数 - 左下角（画布外区域会在HTML中显示）
+    this.ctx.fillText(`SCORE: ${this.gameState.score}`, 10, uiY);
     
-    // 生命
-    this.ctx.fillText(`LIVES: ${this.gameState.lives}`, 10, 40);
+    // 生命 - 居中
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(`LIVES: ${this.gameState.lives}`, this.canvas.width / 2, uiY);
     
-    // 关卡
-    this.ctx.fillText(`LEVEL: ${this.gameState.level}`, 10, 60);
+    // 关卡 - 右侧
+    this.ctx.textAlign = 'right';
+    this.ctx.fillText(`LEVEL: ${this.gameState.level}`, this.canvas.width - 10, uiY);
 
     // 游戏结束提示
     if (this.gameState.isGameOver) {
+      // 半透明背景遮罩
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      
       this.ctx.fillStyle = '#FFFF00';
       this.ctx.font = 'bold 32px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2);
+      this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40);
       
-      this.ctx.font = '16px Arial';
-      this.ctx.fillText('Press F5 to restart', this.canvas.width / 2, this.canvas.height / 2 + 30);
+      // 绘制重玩按钮
+      this.drawRestartButton();
     }
 
     // 暂停提示
     if (this.gameState.isPaused && !this.gameState.isGameOver) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      
       this.ctx.fillStyle = '#FFFF00';
       this.ctx.font = 'bold 32px Arial';
       this.ctx.textAlign = 'center';
       this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+      
+      this.ctx.font = '14px Arial';
+      this.ctx.fillText('Press P to resume', this.canvas.width / 2, this.canvas.height / 2 + 30);
     }
   }
+
+  /**
+   * 绘制重玩按钮
+   */
+  private drawRestartButton(): void {
+    const buttonWidth = 120;
+    const buttonHeight = 40;
+    const buttonX = (this.canvas.width - buttonWidth) / 2;
+    const buttonY = this.canvas.height / 2 + 10;
+    
+    // 按钮背景
+    this.ctx.fillStyle = '#2121DE';
+    this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+    
+    // 按钮边框
+    this.ctx.strokeStyle = '#FFFFFF';
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+    
+    // 按钮文字
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.font = 'bold 16px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText('RESTART', this.canvas.width / 2, buttonY + buttonHeight / 2);
+    this.ctx.textBaseline = 'alphabetic';
+    
+    // 存储按钮位置用于点击检测
+    this.restartButtonRect = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight };
+  }
+
+  private restartButtonRect: { x: number; y: number; width: number; height: number } | null = null;
 
   /**
    * 获取当前分数
