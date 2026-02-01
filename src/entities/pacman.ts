@@ -103,11 +103,14 @@ export class Pacman implements Entity {
    * 检查是否可以移动到指定位置
    */
   private canMoveTo(x: number, y: number, map: Map, tileSize: number): boolean {
-    // 计算吃豆人的碰撞框
-    const leftCol = Math.floor((x - this.radius) / tileSize);
-    const rightCol = Math.floor((x + this.radius) / tileSize);
-    const topRow = Math.floor((y - this.radius) / tileSize);
-    const bottomRow = Math.floor((y + this.radius) / tileSize);
+    // 使用更小的碰撞框，给吃豆人更多活动空间
+    const collisionRadius = this.radius * 0.8;
+    
+    // 计算吃豆人的碰撞框（稍微缩小一点）
+    const leftCol = Math.floor((x - collisionRadius) / tileSize);
+    const rightCol = Math.floor((x + collisionRadius) / tileSize);
+    const topRow = Math.floor((y - collisionRadius) / tileSize);
+    const bottomRow = Math.floor((y + collisionRadius) / tileSize);
 
     // 检查四个角的碰撞
     const corners = [

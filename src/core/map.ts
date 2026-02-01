@@ -96,8 +96,8 @@ export class Map implements GameMap {
    * 获取吃豆人起始位置
    */
   getPacmanStartPosition(): GridPosition {
-    // 吃豆人起始位置（地图底部中央）
-    return { col: 13, row: 23 };
+    // 吃豆人起始位置（地图底部中央，第26行中间是通道）
+    return { col: 13, row: 26 };
   }
 
   /**
